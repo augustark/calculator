@@ -1,0 +1,28 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: auto;
+  width: 50%;
+  border: 2px salmon solid;
+  padding: 1em;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+}
+
+button {
+  padding: 1em;
+}
+
+.result {
+  text-align: right;
+  padding: 0 1em;
+}
