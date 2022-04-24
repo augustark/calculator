@@ -5,35 +5,42 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="index.css">
 </head>
 <body>
-  <div class="view">
-    <h5 class='result prev' id="prev-result">--</h5>
-    <h1 class='result' id="result">0</h1>
-  </div>
-  <button class="key operator" id="clear-entry">CE</button>
-  <button class="key operator" id="clear">C</button>
-  <div class="keys digits">
-    <button class="key">7</button>
-    <button class="key">8</button>
-    <button class="key">9</button>
-    <button class="key">4</button>
-    <button class="key">5</button>
-    <button class="key">6</button>
-    <button class="key">1</button>
-    <button class="key">2</button>
-    <button class="key">3</button>
-    <button class="key">0</button>
-    <button class="key">.</button>
-  </div>
-  <div class="keys operators">
-    <button class="key operator" id="divide">&#247;</button>
-    <button class="key operator" id="multiply">&#215;</button>
-    <button class="key operator" id="subtract">&#8722;</button>
-    <button class="key operator" id="add">&plus;</button>
-    <button class="key operator" id="equal">&#61;</button>
-    <button class="key operator" id="plus-minus">&#177;</button>
+  <div class="calculator">
+    <div class="view">
+      <p class='result prev' id="prev-result"></p>
+      <h1 class='result' id="result">0</h1>
+    </div>
+    <div class="keys">
+      <div class="digits">
+        <button class="key" id="plus-minus">&#177;</button>
+        <button class="key" id="clear-entry">CE</button>
+        <button class="key" id="clear">C</button>
+        <button class="key">7</button>
+        <button class="key">8</button>
+        <button class="key">9</button>
+        <button class="key">4</button>
+        <button class="key">5</button>
+        <button class="key">6</button>
+        <button class="key">1</button>
+        <button class="key">2</button>
+        <button class="key">3</button>
+        <button class="key zero">0</button>
+        <button class="key">.</button>
+      </div>
+      <div class="operators">
+        <button class="key operator" id="divide">&#247;</button>
+        <button class="key operator" id="multiply">&#215;</button>
+        <button class="key operator" id="subtract">&#8722;</button>
+        <button class="key operator" id="add">&plus;</button>
+        <button class="key operator" id="equal">&#61;</button>
+      </div>
+    </div>
   </div>
   <!-- <script src="index.js"></script> -->
   <script src="function_factory.js"></script>
