@@ -1,146 +1,161 @@
-class State {
-  constructor() {
-    this.current = 0
-    this.previous = null
-    this.result = null
-    this.operator = undefined
+const Calculator = () => {
+  const state = {
+    current: 0,
+    previous: null,
+    operator: null,
+    result: null,
   }
 
-  setCurrent(value) {
-    this.current = value
-    return 
+  function display() {
+    const { current, previous } = state
+    let currentValue = current && current[0] === '.' ? 0 + current : current === null ? previous : current
+    
+    const preview = document.getElementById('prev-result')
+    preview.innerHTML = previous || ''
+    
+    const mainView = document.getElementById('result')
+
+    mainView.style.fontSize = current && String(current).length > 11 ? '32px' : '50px'
+    mainView.innerHTML = currentValue
   }
 
-  getPrevious() {
-    return this.previous
+  function setCurrent(val) {
+    state.setValues({ current: val })
+    return display()
   }
 
-  setPrevious(id) {
-    this.operator = id
-    this.previous = this.current
-    this.current = null
+  function setOperator(id) {
+    if (!state.operator && state.current) {
+      state.setValues(prev => ({ 
+        operator: id, 
+        previous: prev.current,
+        current: null
+      }))
+    } else {
+      state.setValues({operator: id})
+    }
+    return display()
   }
 
-  getResult() {
-    const num1 = Number(this.previous)
-    const num2 = Number(this.current)
+  function setResult() {
+    let result
+    const num1 = Number(state.previous)
+    const num2 = Number(state.current)
 
-    if (!initial.previous && !initial.result) {
-      this.setCurrent(Number(initial.current))
-      this.previous = this.current
-      this.display()
-      return 
-    } else if (!initial.operator) {
-      this.setCurrent(Number(initial.current))
-      this.previous = this.current
-      this.display()
-      return console.log('hello')
+    if (!state.previous && !state.result || !state.operator) {
+      state.setValues({
+        current: Number(state.current),
+        previous: state.current
+      })
+      return display()
     }
 
-    switch(this.operator) {
+    switch(state.operator) {
       case 'add':
-        this.result = num1 + num2
+        result = num1 + num2 
         break
       case 'subtract':
-        this.result = num1 - num2
+        result = num1 - num2 
         break
       case 'multiply':
-        this.result = num1 * num2
+        result = num1 * num2 
         break
       case 'divide':
-        this.result = num2 ? num1 / num2 : 'Cannot divide by zero'
+        result = num2 ? num1 / num2 : 'Cannot divide by zero'
         break
       default:
         break
     }
 
-    this.current = this.result
-    this.previous = null
-    this.operator = undefined
-    this.display()
+    state.setValues({
+      current: result,
+      previous: null,
+      operator: null,
+      result: result
+    })
+    return display()
   }
 
-  clearAll() {
-    this.current = 0
-    this.previous = null
-    this.result = null
-    this.display()
-  }
-  
-  clearEntry() {
-    this.current = 0
-    this.display()
+  function clear() {
+    state.setValues({
+      current: 0,
+      previous: null,
+      operator: null,
+      result: null
+    })
+    return display()
   }
 
-  negate() {
-    this.current = this.current ? -this.current : -this.previous
-    this.display()
+  function clearEntry() {
+    state.setValues({current: 0})
+    return display()
   }
 
-  display() {
-    let currentValue = this.current[0] === '.' ? 0 + this.current : this.current
-  
-    const mainView = document.getElementById('result')
-    mainView.innerHTML = currentValue
-
-    const preview = document.getElementById('prev-result')
-    preview.innerHTML = initial.getPrevious() || '--'
-
-    console.log(initial)
+  function negate() {
+    state.setValues(prev => ({ 
+      current: prev.current ? -prev.current : -prev.previous
+    }))
+    return display()
   }
-}
 
-const initial = new State()
-
-function INIT() {
-  const allKeys = document.querySelectorAll('.key')
-  allKeys.forEach(key => {
-    if ( 
-      Number(key.textContent) || 
-      key.textContent == 0 || 
-      key.textContent === '.'
-    ) {
-      return key.addEventListener('click', forKeyDigits)
+  return { 
+    state, 
+    setOperator, 
+    setCurrent,
+    setResult,
+    otherKeys: {
+      clear,
+      clearEntry,
+      negate
     }
-    return key.addEventListener('click', forOperators)
-  })
+  }
 }
 
-function forOperators() {
+const { state, setOperator, setCurrent, setResult, otherKeys } = Calculator()
+
+Object.prototype.setValues = function(cb) {
+  const callback = typeof cb === 'function' ? cb(this) : cb
+  const newObj = {...this, ...callback}  
+  for (const [key, value] of Object.entries(newObj)) {
+    Object.defineProperty(this, key, { value })
+  } return
+}
+
+const allKeys = document.querySelectorAll('.key')
+allKeys.forEach(btn => {
+  const key = btn.textContent
+  if (Number(key) || key == 0 || key === '.') {
+    return btn.addEventListener('click', keyDigits)
+  } else return btn.addEventListener('click', keyOperators)
+  
+})
+
+function keyOperators() {
+  const { current, previous } = state
   switch(this.id) {
     case 'clear':
-      return initial.clearAll()
+      return otherKeys.clear()
     case 'clear-entry':
-      return initial.clearEntry()
+      return otherKeys.clearEntry()
     case 'plus-minus':
-      return initial.negate()
+      return otherKeys.negate()
     case 'equal':
-      return initial.getResult()
+      return setResult()
     default:
-      if (initial.current && initial.previous) {
-        initial.getResult()
-      }
-      initial.setPrevious(this.id)
-      console.log(initial)
-      return
+      if (current && previous) setResult()
+      return setOperator(this.id)
   }
 }
 
-function forKeyDigits() {
-  const val = this.textContent
+function keyDigits() {
+  const num = this.textContent
+  const { current, operator } = state
 
-  if (val === '.' && String(initial.current).includes('.')) return
-  else if (
-    initial.current == 0 || 
-    initial.current === null || 
-    (!initial.operator && typeof initial.current === 'number') 
-  ) {
-    initial.setCurrent(val)
-    initial.display()
+  if (num === '.' && String(current).includes('.')) return
+  if (current == 0 || current === null || !operator && typeof current === 'number' ) {
+    setCurrent(num)
   } else {
-    initial.setCurrent(initial.current + val)
-    initial.display()
+    if ( current.length > 14 ) return
+    setCurrent(current + num)
   }
 }
-
-INIT()
