@@ -1,112 +1,161 @@
-class State {
-  constructor() {
-    this.current = 0
-    this.previous = null
-    this.result = null
-    this.operator = undefined
+const Calculator = () => {
+  const state = {
+    current: 0,
+    previous: null,
+    operator: null,
+    result: null,
   }
 
-  getCurrent() {
-    return this.current
+  function display() {
+    const { current, previous } = state
+    let currentValue = current && current[0] === '.' ? 0 + current : current === null ? previous : current
+    
+    const preview = document.getElementById('prev-result')
+    preview.innerHTML = previous || ''
+    
+    const mainView = document.getElementById('result')
+
+    mainView.style.fontSize = current && String(current).length > 11 ? '32px' : '50px'
+    mainView.innerHTML = currentValue
   }
 
-  setCurrent(value) {
-    return this.current = value
+  function setCurrent(val) {
+    state.setValues({ current: val })
+    return display()
   }
 
-  getPrevious() {
-    return this.previous
-  }
-
-  setPrevious(id) {
-    this.operator = id
-    this.previous = this.current
-    this.current = null
-  }
-
-  getResult() {
-    const num1 = parseFloat(this.previous)
-    const num2 = parseFloat(this.current)
-
-    switch(this.operator) {
-      case 'add':
-        this.result = num1 + num2
-      case 'subtract':
-        this.result = num1 - num2
-      case 'multiply':
-        this.result = num1 * num2
-      case 'divide':
-        this.result = num2 ? num1 + num2 : 'Cannot divide by zero'
-      default:
-        this.current = this.result
-        this.previous = null
-        this.operator = undefined
+  function setOperator(id) {
+    if (!state.operator && state.current) {
+      state.setValues(prev => ({ 
+        operator: id, 
+        previous: prev.current,
+        current: null
+      }))
+    } else {
+      state.setValues({operator: id})
     }
+    return display()
   }
 
-  clearAll() {
-    this.current = 0
-    this.previous = null
-    this.result = null
+  function setResult() {
+    let result
+    const num1 = Number(state.previous)
+    const num2 = Number(state.current)
+
+    if (!state.previous && !state.result || !state.operator) {
+      state.setValues({
+        current: Number(state.current),
+        previous: state.current
+      })
+      return display()
+    }
+
+    switch(state.operator) {
+      case 'add':
+        result = num1 + num2 
+        break
+      case 'subtract':
+        result = num1 - num2 
+        break
+      case 'multiply':
+        result = num1 * num2 
+        break
+      case 'divide':
+        result = num2 ? num1 / num2 : 'Cannot divide by zero'
+        break
+      default:
+        break
+    }
+
+    state.setValues({
+      current: result,
+      previous: null,
+      operator: null,
+      result: result
+    })
+    return display()
+  }
+
+  function clear() {
+    state.setValues({
+      current: 0,
+      previous: null,
+      operator: null,
+      result: null
+    })
+    return display()
+  }
+
+  function clearEntry() {
+    state.setValues({current: 0})
+    return display()
+  }
+
+  function negate() {
+    state.setValues(prev => ({ 
+      current: prev.current ? -prev.current : -prev.previous
+    }))
+    return display()
+  }
+
+  return { 
+    state, 
+    setOperator, 
+    setCurrent,
+    setResult,
+    otherKeys: {
+      clear,
+      clearEntry,
+      negate
+    }
   }
 }
 
-const initial = new State()
+const { state, setOperator, setCurrent, setResult, otherKeys } = Calculator()
 
-function display() {
-  const mainView = document.getElementById('result')
-  mainView.innerHTML = initial.getCurrent()
-
-  const preview = document.getElementById('prev-result')
-  preview.innerHTML = initial.getPrevious() || '--'
-
-  console.log(initial)
+Object.prototype.setValues = function(cb) {
+  const callback = typeof cb === 'function' ? cb(this) : cb
+  const newObj = {...this, ...callback}  
+  for (const [key, value] of Object.entries(newObj)) {
+    Object.defineProperty(this, key, { value })
+  } return
 }
 
 const allKeys = document.querySelectorAll('.key')
-allKeys.forEach(key => {
-  if (Number(key.textContent) || key.textContent == 0) {
-    return key.addEventListener('click', forKeyDigits)
-  }
-  return key.addEventListener('click', forOperators)
+allKeys.forEach(btn => {
+  const key = btn.textContent
+  if (Number(key) || key == 0 || key === '.') {
+    return btn.addEventListener('click', keyDigits)
+  } else return btn.addEventListener('click', keyOperators)
+  
 })
 
-function forOperators() {
+function keyOperators() {
+  const { current, previous } = state
   switch(this.id) {
     case 'clear':
-      initial.clearAll()
-      display()
-      return 
+      return otherKeys.clear()
+    case 'clear-entry':
+      return otherKeys.clearEntry()
+    case 'plus-minus':
+      return otherKeys.negate()
     case 'equal':
-      if (!initial.previous && !initial.result) {
-        initial.setCurrent(parseFloat(initial.current))
-        display()
-        return 
-      } 
-      initial.getResult()
-      display()
-      return
+      return setResult()
     default:
-      if (initial.current && initial.previous) {
-        initial.getResult()
-        display()
-      }
-      initial.setPrevious(this.id)
-      console.log(initial)
-      return
+      if (current && previous) setResult()
+      return setOperator(this.id)
   }
 }
 
-function forKeyDigits() {
-  if (
-    initial.current == 0 || 
-    initial.current === null || 
-    (!initial.operator && typeof initial.current === 'number')
-  ) {
-    initial.setCurrent(this.textContent)
-    display()
+function keyDigits() {
+  const num = this.textContent
+  const { current, operator } = state
+
+  if (num === '.' && String(current).includes('.')) return
+  if (current == 0 || current === null || !operator && typeof current === 'number' ) {
+    setCurrent(num)
   } else {
-    initial.setCurrent(initial.current + this.textContent)
-    display()
+    if ( current.length > 14 ) return
+    setCurrent(current + num)
   }
 }
